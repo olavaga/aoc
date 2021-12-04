@@ -1,6 +1,7 @@
 sequence = []
 boards = []
 
+# Parse input data
 with open('day4.txt', 'r') as fil:
     sequence += fil.readline().strip().split(',')
     
@@ -18,6 +19,7 @@ with open('day4.txt', 'r') as fil:
         boards.append(board)
         board = []
 
+# For every board, find out when it wins
 wins = []
 for board in boards:
     rc = board + [*zip(*board[::-1])]
@@ -28,20 +30,17 @@ for board in boards:
             first = (ind, last_n)
     wins.append((*first, board))
 
-winning_row = min(wins)
-ind, last_n, board = winning_row
+# Calculate the score of a given board and its winning number
+def score(ind, last_n, board):
+    marked = sequence[:ind+1]
+    unmarked = set([i for row in board for i in row]) - set(marked)
+    last_n = int(last_n)
 
-marked = sequence[:ind+1]
-unmarked = set([i for row in board for i in row]) - set(marked)
+    return sum(map(int,unmarked)) * last_n
 
-last_n = int(last_n)
-print("winning",sum(map(int,unmarked)) * last_n)
+# Output best and worst boards
+winning_board = min(wins)
+losing_board = max(wins)
 
-losing_row = max(wins)
-ind, last_n, board = losing_row
-
-marked = sequence[:ind+1]
-unmarked = set([i for row in board for i in row]) - set(marked)
-
-last_n = int(last_n)
-print("losing",sum(map(int,unmarked)) * last_n)
+print("winning",score(*winning_board))
+print("losing",score(*losing_board))
