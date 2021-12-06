@@ -1,16 +1,23 @@
-position, depth, aim = 0, 0, 0
+import sys
+
 with open('day2.txt', 'r') as fil:
-    for line in fil:
-        command, distance = line.split()
-        if command == 'forward':
+    commands = fil.read().splitlines()
+
+position, depth, aim = 0, 0, 0
+
+for command in commands:
+    match command.split():
+        case ["forward", distance]:
             position += int(distance)
             depth += aim * int(distance)
-        elif command == 'down':
-            # depth += int(distance)
+            
+        case ["down", distance]:
             aim += int(distance)
-        elif command == 'up':
-            # depth -= int(distance)
+        
+        case ["up", distance]:
             aim -= int(distance)
-        else:
-            ...
-    print(position, depth, position * depth)
+         
+        case _:
+            print(f"Error parsing command {command}", file = sys.stderr)
+            
+print(position, depth, position * depth)
