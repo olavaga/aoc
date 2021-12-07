@@ -1,6 +1,6 @@
 import sys
 
-with open('day2.txt', 'r') as fil:
+with open('data/day2.txt', 'r') as fil:
     commands = fil.read().splitlines()
 
 position, depth, aim = 0, 0, 0

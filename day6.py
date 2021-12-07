@@ -1,7 +1,7 @@
 from collections import defaultdict, Counter
 
 fish = None
-with open('day6.txt', 'r') as fil:
+with open('data/day6.txt', 'r') as fil:
     fish = Counter(map(int,fil.readline().strip().split(',')))
 
 for i in range(256):

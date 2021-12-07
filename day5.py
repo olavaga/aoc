@@ -2,7 +2,7 @@ from itertools import zip_longest
 
 # Parse inputs
 lines = []
-with open('day5.txt', 'r') as fil:
+with open('data/day5.txt', 'r') as fil:
     for line in fil.read().splitlines():
         a,b = line.split(' -> ')
         a = tuple(map(int,a.split(',')))

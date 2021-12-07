@@ -1,7 +1,7 @@
 from math import floor
 import statistics
 
-with open('day7.txt', 'r') as fil:
+with open('data/day7.txt', 'r') as fil:
     crabs = list(map(int,fil.readline().split(',')))
 
 middle_crab = statistics.median(crabs)

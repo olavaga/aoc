@@ -1,4 +1,4 @@
-with open('day3.txt','r') as fil:
+with open('data/day3.txt','r') as fil:
     data = fil.read().splitlines()
 
 # Part one

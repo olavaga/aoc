@@ -2,7 +2,7 @@ sequence = []
 boards = []
 
 # Parse input data
-with open('day4.txt', 'r') as fil:
+with open('data/day4.txt', 'r') as fil:
     sequence += fil.readline().strip().split(',')
     
     board = []
