@@ -1,16 +1,12 @@
 from aocd import data, submit
 
-def select(fn, lst):
-    selected = [n for n in lst if fn(n)]
-    other = [n for n in lst if not fn(n)]
-    return selected, other
-
 easy_digits = 0
 total = 0
 
 for line in data.splitlines():
+    # Parse data
     uniq, display = line.split('|')
-    uniq = uniq.split()
+    uniq = set(uniq.split())
     display = display.split()
 
     easy_digits += sum(len(seg) in (2,4,3,7) for seg in display)
@@ -19,30 +15,35 @@ for line in data.splitlines():
     ns = [""]*10
     
     # Length
-    ns[1], uniq = select(lambda n: len(n)==2, uniq)
-    ns[4], uniq = select(lambda n: len(n)==4, uniq)
-    ns[7], uniq = select(lambda n: len(n)==3, uniq)
-    ns[8], uniq = select(lambda n: len(n)==7, uniq)
+    ns[1] = max(uniq, key=lambda n: len(n)==2)
+    ns[4] = max(uniq, key=lambda n: len(n)==4)
+    ns[7] = max(uniq, key=lambda n: len(n)==3)
+    ns[8] = max(uniq, key=lambda n: len(n)==7)
 
-    group1, group2 = select(lambda n: len(n)==6, uniq)
+    five_seg = set(filter(lambda n: len(n)==5, uniq))
+    six_seg = set(filter(lambda n: len(n)==6, uniq))
 
-    # 0, 6 and 9 - which number covers which?
-    ns[9], group1 = select(lambda n: not set(*ns[4]) - set(n), group1)
-    ns[0], ns[6] = select(lambda n: not set(*ns[7]) - set(n), group1)
+    # Use sets to check if a number completely covers another number
+    ns[3] = max(five_seg, key=lambda n: not set(ns[1]) - set(n))
+    ns[6] = max(six_seg, key=lambda n: not set(ns[8]) - set(ns[7]) - set(n))
+    ns[9] = max(six_seg, key=lambda n: not set(ns[4]) - set(n))
 
-    # 2, 3 and 5
-    ns[3], group2 = select(lambda n: not set(*ns[1]) - set(n), group2)
-    ns[5], ns[2] = select(lambda n: not set(n) - set(*ns[6]), group2)
+    # Assumes that 6, 9 and 5 are correctly discovered
+    ns[5] = max(five_seg, key=lambda n: not set(n) - set(ns[6]))
+    ns[2] = max(five_seg, key=lambda n: not set(ns[8]) - set(ns[9] + n))
+    ns[0] = max(six_seg, key=lambda n: not set(ns[8]) - set(ns[5]) - set(n))
 
-    # Flatten
-    ns = [n[0] for n in ns]
+    # Check that all numbers have been found
+    assert(len(set(ns)) == 10)
 
+    # Read display and add to total
     num = ""
     for s in display:
-        digit = [i for i,n in enumerate(ns) if set(n) == set(s)][0]
+        digit = max(range(10),key=lambda i:set(ns[i]) == set(s))
         num += str(digit)
         
     total += int(num)
 
 print(easy_digits)
 print(total)
+submit(total)
