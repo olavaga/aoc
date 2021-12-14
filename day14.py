@@ -1,5 +1,6 @@
 from collections import defaultdict, Counter
 from itertools import pairwise
+from functools import reduce, partial
 
 def readLines(filnavn):
     with open(filnavn, 'r') as fil:
@@ -19,12 +20,10 @@ def pairInsertion(pairs, rules):
 
     return newPairs
 
-def compute(steps, pairs, rules, lastChar):
-    for i in range(steps):
-        pairs = pairInsertion(pairs, rules)
-
-    counts = {a:sum(v for k, v in pairs.items() if k[0]==a) for a in set("".join(pairs.keys()))}
-    counts[lastChar] += 1
+def score(template, pairs):
+    counts = {a:sum(v for k, v in pairs.items() if k[0]==a) 
+                for a in set("".join(pairs.keys()))}
+    counts[template[-1]] += 1
 
     return max(counts.values()) - min(counts.values())
 
@@ -33,8 +32,11 @@ if __name__ == '__main__':
     template = data[0]
     rules = parseDict(data, sep=' -> ')
 
+    applyRules = partial(pairInsertion, rules=rules)
     pairs = Counter(map("".join,pairwise(template)))
-    lastChar = data[0][-1]
 
-    print(f"P1: {compute(10, pairs, rules, lastChar) = }")
-    print(f"P2: {compute(40, pairs, rules, lastChar) = }")
+    step10 = reduce(lambda a,b:b(a), [applyRules] * 10, pairs)
+    step40 = reduce(lambda a,b:b(a), [applyRules] * 40, pairs)
+
+    print(f"P1: {score(template, step10) = }")
+    print(f"P2: {score(template, step40) = }")
