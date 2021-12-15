@@ -1,26 +1,22 @@
 from aocd import data, submit
+from heapq import heappush, heappop
 
 def djikstra(matrix):
     dists = [[2**64] * len(matrix[0]) for _ in matrix]
 
     dists[0][0] = 0
-    kø = set([(0,1), (1,0)])
-    seen = kø | {(0,0)}
+    kø = [(0,0,0)]
+    seen = set([(0,0)])
 
-    for t in kø:
-        x,y = t
-        dists[x][y] = matrix[x][y]
-
-    while not (len(matrix[0]) - 1, len(matrix) - 1) in kø:
-        x,y = min(kø, key=lambda t:dists[t[0]][t[1]])
+    while not (len(matrix[0]) - 1, len(matrix) - 1) in seen:
+        d,x,y = heappop(kø)
         for s,t in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
             if (s,t) in seen:
                 continue
             if 0 <= s < len(matrix[0]) and 0 <= t < len(matrix):
                 dists[s][t] = min(dists[s][t], dists[x][y] + matrix[s][t])
-                kø.add((s,t))
+                heappush(kø, (dists[s][t],s,t))
                 seen.add((s,t))
-        kø.remove((x,y))
 
     return dists[-1][-1]
 
