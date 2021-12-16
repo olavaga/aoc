@@ -48,13 +48,8 @@ class Packet:
             raise Exception
 
 
-def getVersion(packet):
-    version = packet[:3]
-    return int(version, 2)
-
-def getType(packet):
-    typeID = packet[3:6]
-    return int(typeID, 2)
+def chunkNbits(bits, length):
+    return bits[length:], int(bits[:length], 2)
 
 def readLiteralValue(packet):
     number = ""
@@ -69,16 +64,9 @@ def readLiteralValue(packet):
 
     return bits_read + 5, int(number + group[1:5], 2)
 
-def read11(packet):
-    return int(packet[:11], 2)
-
-def read15(packet):
-    return int(packet[:15], 2)
-
 def parsePacket(BITS):
-    version_numbers = getVersion(BITS)
-    typeID = getType(BITS)
-    BITS= BITS[6:]
+    BITS, version_numbers = chunkNbits(BITS, 3)
+    BITS, typeID = chunkNbits(BITS, 3)
     packet = Packet(version_number = version_numbers, typeID = typeID)
 
     if typeID == 4:
@@ -87,21 +75,18 @@ def parsePacket(BITS):
         packet.literal = lit
 
     else:
-        length_type_id = int(BITS[0])
-        BITS = BITS[1:]
+        BITS, length_type_id = chunkNbits(BITS, 1)
         packet.subpackets = []
 
         if length_type_id:
-            num_sub_packets = read11(BITS)
-            BITS = BITS[11:]
+            BITS, num_sub_packets = chunkNbits(BITS, 11)
 
             for _ in range(num_sub_packets):
                 BITS, subpacket = parsePacket(BITS)
                 packet.subpackets.append(subpacket)
 
         else:
-            bit_length = read15(BITS)
-            BITS = BITS[15:]
+            BITS, bit_length = chunkNbits(BITS, 15)
             orig_len = len(BITS)
 
             BITS, subpacket = parsePacket(BITS)
@@ -115,23 +100,15 @@ def parsePacket(BITS):
 
 def parse(data):
     BITS=str(bin(int(data.strip(),16))[2:]).rjust(len(data)*4, '0')
-    packets = []
-
-    while BITS and int(BITS, 2):
-        BITS, packet = parsePacket(BITS)
-        packets.append(packet)
-              
-    return packets
+    BITS, packet = parsePacket(BITS)
+    return packet
 
 def evaluate(data):
-    packets = parse(data)
-    assert(len(packets) == 1)
-    packet = packets[0]
-    return packet.evaluate()
+    return parse(data).evaluate()
 
 def sum_version_numbers(data):
-    packets = parse(data)
-    return sum(packet.get_version_numbers() for packet in packets)
+    packet = parse(data)
+    return packet.get_version_numbers()
 
 if __name__ == '__main__':
     print("Part1", sum_version_numbers(data))
