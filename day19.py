@@ -8,25 +8,6 @@ class Scanner:
     sid : int
     beacons : set
 
-def composite_function(f, g):
-    return lambda x: f(g(x))
-
-def orientations():
-    # Facing any of +x/-x (x,y,z) and considering any of 4 dirs up
-    rotate = lambda t: (t[0],t[2],-t[1])
-    face = lambda t: (t[1],t[2],t[0])
-    inverse = lambda t: (-t[0],-t[1],t[2])
-
-    f = lambda t:t
-   
-    for _ in range(3):
-        for _ in range(4):
-            yield f
-            yield composite_function(inverse,f)
-            f = composite_function(rotate,f)
-
-        f = composite_function(face,f)
-
 def initializeScanners(data):
     scanners = []
     sid = 0
@@ -44,8 +25,25 @@ def initializeScanners(data):
         scanners.append(Scanner(sid, beacons))
     return scanners
 
+def composite_function(f, g):
+    return lambda x: f(g(x))
+
+def orientations():
+    # Facing any of +x/-x (x,y,z) and considering any of 4 dirs up
+    rotate = lambda t: (t[0],t[2],-t[1])
+    face = lambda t: (t[1],t[2],t[0])
+    inverse = lambda t: (-t[0],-t[1],t[2])
+
+    f = lambda t:t
+   
+    for _ in range(3):
+        for _ in range(4):
+            yield f
+            yield composite_function(inverse,f)
+            f = composite_function(rotate,f)
+        f = composite_function(face,f)
+
 def matches(sc1, sc2):
-    
     for facing in orientations():
         for x1, y1, z1 in sc1.beacons:
             for x2, y2, z2 in map(facing,sc2.beacons):
@@ -55,51 +53,36 @@ def matches(sc1, sc2):
                         for x,y,z in map(facing,sc2.beacons))
 
                 if m >= 12:
-                    return facing, (dx,dy,dz)
+                    return (facing, dx,dy,dz)
 
     return False
 
 def composite(sc):
-    while len(sc) > 1:
-        joined = dict()
-        print("Current sc-size", len(sc))
-        print("Current ids", *(s.sid for s in sc))
-        seen = set()
-        for s1, s2 in permutations(sc, 2):
-            if s1.sid in seen or s2.sid in seen:
-                continue
+    comp = sc[0]
+    comp.scanners = [(0,0,0)]
+    insert = sc[1:]
 
-            if r:=matches(s1, s2):
-                print(f"Match {s1.sid=} - {s2.sid=}")
-                f, dist = r
-                dx, dy, dz = dist
-                print(f"Data {r=}")
-                trans=map(lambda t:(t[0]+dx,t[1]+dy,t[2]+dz),map(f,s2.beacons))
-                ns = Scanner(s1.sid, s1.beacons.union(set(trans)))
-                print(f"{len(s1.beacons)} + {len(s2.beacons)} = {len(ns.beacons)}")
-                joined[tuple(sorted([s1.sid,s2.sid]))] = ns
-                seen.add(s1.sid)
-                seen.add(s2.sid)
-        sc = [s for s in sc if not s.sid in seen]
-        sc += [*joined.values()]
+    while insert:
+        n = []
+        for s in insert:
+            if r:=matches(comp, s):
+                f, dx, dy, dz = r
+                trans=map(lambda t:(t[0]+dx,t[1]+dy,t[2]+dz),map(f,s.beacons))
+                comp.beacons.update(set(trans))
+                comp.scanners.append((dx,dy,dz))
+            else:
+                n.append(s)
+        insert = n
 
-    return max(sc, key=lambda s: len(s.beacons))
+    return comp
 
-def largest_distance(s):
-    manhattan = lambda p,q: sum(abs(a-b) for a,b in zip(p,q))
-    largest = 0
-
-    for a,b in combinations(s.beacons, 2):
-        if manhattan(a,b) > largest:
-            print('largest','\n',a,'\n',b)
-            largest = manhattan(a,b)
-
-    return largest
+def largest_distance(scanners):
+    manhattan = lambda ps: sum(abs(a-b) for a,b in zip(*ps))
+    return max(map(manhattan,combinations(scanners,2)))
 
 if __name__ == '__main__':
     sc = initializeScanners(data)
-    print(len(sc))
-    print(set(len(s.beacons) for s in sc))
-
     s = composite(sc)
-    print(len(s.beacons))
+
+    print("P1",len(s.beacons))
+    print("P2",largest_distance(s.scanners))
