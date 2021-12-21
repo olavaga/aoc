@@ -1,5 +1,5 @@
 import pytest
-from day19 import initializeScanners, matches, composite, largest_distance
+from day19 import initializeScanners, matches, composite, largest_distance, orientations
 
 data = """--- scanner 0 ---
 404,-588,-901
@@ -138,6 +138,46 @@ data = """--- scanner 0 ---
 -652,-548,-490
 30,-46,-14"""
 
+orientation_data = """\
+--- scanner 0 ---
+-1,-1,1
+-2,-2,2
+-3,-3,3
+-2,-3,1
+5,6,-4
+8,0,7
+
+--- scanner 0 ---
+1,-1,1
+2,-2,2
+3,-3,3
+2,-1,3
+-5,4,-6
+-8,-7,0
+
+--- scanner 0 ---
+-1,-1,-1
+-2,-2,-2
+-3,-3,-3
+-1,-3,-2
+4,6,5
+-7,0,8
+
+--- scanner 0 ---
+1,1,-1
+2,2,-2
+3,3,-3
+1,3,-2
+-4,-6,5
+7,0,8
+
+--- scanner 0 ---
+1,1,1
+2,2,2
+3,3,3
+3,1,2
+-6,-4,-5
+0,7,-8"""
 
 @pytest.fixture
 def scanners():
@@ -147,6 +187,27 @@ def scanners():
 def comp_scanner(scanners):
     return composite(scanners)
 
+@pytest.mark.parametrize('index',[1,2,3,4])
+def test_orientations(index):
+    lines = orientation_data.split('\n')
+    versions = []
+    for line in lines:
+        if 'scanner' in line:
+            versions.append([])
+        elif not line:
+            continue
+        else:
+            points = tuple(map(int,line.split(',')))
+            versions[-1].append(points)
+
+    initial = tuple(versions[0])
+    v = versions[index]
+    for f in orientations():
+        t = tuple(map(f, v))
+        if initial == t:
+            break
+    assert(initial == t)
+        
 def test_matches(scanners):
     assert(matches(scanners[0], scanners[1]))
 
