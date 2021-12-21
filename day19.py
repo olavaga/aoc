@@ -18,32 +18,14 @@ def orientations():
     inverse = lambda t: (-t[0],-t[1],t[2])
 
     f = lambda t:t
-    i = inverse
    
-    for _ in range(4):
-        yield f
-        yield i
-        f = composite_function(rotate,f)
-        i = composite_function(rotate,i)
+    for _ in range(3):
+        for _ in range(4):
+            yield f
+            yield composite_function(inverse,f)
+            f = composite_function(rotate,f)
 
-    f = face
-    i = composite_function(f, i)
-
-    for _ in range(4):
-        yield f
-        yield i
-        f = composite_function(rotate,f)
-        i = composite_function(rotate,i)
-
-    f = composite_function(face, face)
-    i = composite_function(f, i)
-
-    for _ in range(4):
-        yield f
-        yield i
-        f = composite_function(rotate,f)
-        i = composite_function(rotate,i)
-
+        f = composite_function(face,f)
 
 def initializeScanners(data):
     scanners = []
